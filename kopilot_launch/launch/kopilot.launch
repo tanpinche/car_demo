@@ -1,0 +1,9 @@
+<launch>
+  <node pkg="safe_teleop_base" type="safe_teleop_base" respawn="false" name="safe_teleop_base" output="screen">
+    <rosparam command="load" file="/root/config/kockpit.yaml" />
+  </node>
+  <node pkg="cmd_mutex" type="cmd_mutex" name="cmd_mutex" output="screen">
+    <rosparam command="load" file="/root/config/kockpit.yaml"/>
+  </node>
+
+</launch>

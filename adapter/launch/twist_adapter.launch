@@ -1,0 +1,20 @@
+<launch>  
+  <arg name="max_throttle_linear_diff" default="2" />
+  <arg name="max_steering_angular_diff" default="2" />
+
+  <arg name="linear_multiplier" default="10" />
+  <arg name="angular_multiplier" default="10" />
+  
+
+  
+
+  <node pkg="twist_adapter" type="twist_adapter" respawn="false" name="twist_adapter" output="screen">
+      
+    <param name="max_throttle_linear_diff" value="$(arg max_throttle_linear_diff)"/>
+    <param name="max_steering_angular_diff" value="$(arg max_steering_angular_diff)"/>
+ 
+    <param name="angular_multiplier" value="$(arg angular_multiplier)"/>
+    <param name="linear_multiplier" value="$(arg linear_multiplier)"/>
+  </node>
+
+</launch>

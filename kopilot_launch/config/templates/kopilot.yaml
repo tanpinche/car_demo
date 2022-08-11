@@ -1,0 +1,96 @@
+# paramters for cmd_mutex
+mutex_output: /cmd_vel
+topics:
+-
+  name    : navigation
+  topic   : /cmd_mutex/input/nav_cmd
+  timeout : 0.5
+  priority: 1
+-
+  name    : dock
+  topic   : /cmd_mutex/input/dock_cmd
+  timeout : 0.5
+  priority: 2
+-
+  name    : kopilot
+  topic   : /cmd_mutex/input/kopilot_cmd
+  timeout : 0.5
+  priority: 3
+-
+  name    : override
+  topic   : /cmd_mutex/input/override_cmd
+  timeout : 0.5
+  priority: 4
+
+
+locks:
+-
+  name    : pause
+  topic   : pause_navigation
+  timeout : 0.0
+  priority: 100
+
+
+# kopilot parameters
+transform_tolerance: 0.3
+world_model: costmap
+sim_time: 4.0
+sim_granularity: 0.01
+dwa: false
+vx_samples: 10
+vtheta_samples: 10
+max_vel_x: 1.0
+min_vel_x: 0.0
+max_vel_th: 1.0
+min_vel_th: -1.0
+xy_goal_tolerance: 0.1
+yaw_goal_tolerance: 0.02
+user_bias: 0.1
+occdist_scale: 0.5
+acc_lim_th: 2.0
+acc_lim_x: 1.0
+acc_lim_y: 0.0
+holonomic_robot: false
+safe_backwards: true
+user_cmd_topic: /kopilot_user_cmd
+# safe_cmd_topic should match the cmd_mutex input topic for kopilot
+safe_cmd_topic: /cmd_mutex/input/kopilot_cmd
+
+
+#Independent settings kopilot's local planner's costmap
+local_costmap:
+  global_frame: base_odom
+  rolling_window: true
+
+  plugins:
+    - {name: obstacles_laser,           type: "costmap_2d::ObstacleLayer"}
+    - {name: inflation,                 type: "costmap_2d::InflationLayer"}
+  
+  footprint: [[-0.35, -0.3], [-0.35, 0.3], [0.35, 0.3], [0.35, -0.3]]
+  footprint_padding: 0.05
+
+  robot_base_frame: base_link
+  update_frequency: 4.0
+  publish_frequency: 3.0
+  transform_tolerance: 0.5
+
+  resolution: 0.05
+
+  obstacle_range: 5.5
+  raytrace_range: 6.0
+
+#layer definitions
+  static:
+      map_topic: /map
+      subscribe_to_updates: true
+
+  obstacles_laser:
+      observation_sources: laser
+      laser: {data_type: LaserScan, clearing: true, marking: true, topic: scan, inf_is_valid: true}
+
+  inflation:
+      inflation_radius: 0.5
+
+
+
+

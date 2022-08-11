@@ -1,0 +1,9 @@
+<launch>
+    <include file="$(find car_demo)/launch/demo.launch" />
+    <include file="$(find twist_adapter)/launch/twist_adapter.launch" />
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find car_demo)/map/map3.yaml" />
+
+
+
+    
+</launch>

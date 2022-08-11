@@ -50,6 +50,10 @@ namespace gazebo
 
     public: ros::Subscriber controlSub;
 
+
+    //for publishing current twist
+    public: ros::Publisher twistpub;
+
     /// \brief Pointer to the world
     public: physics::WorldPtr world;
 
@@ -372,13 +376,14 @@ void PriusHybridPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
     this->robot_namespace_ = _sdf->GetElement("robotNamespace")->Get<std::string>() + "/";
   ros::NodeHandle nh(this->robot_namespace_);
   this->dataPtr->controlSub = nh.subscribe("prius", 10, &PriusHybridPlugin::OnPriusCommand, this);
+  this->dataPtr->twistpub = nh.advertise<geometry_msgs::Twist>("/prius/current_twist", 5,this);
 
   this->dataPtr->node.Subscribe("/prius/reset",
       &PriusHybridPlugin::OnReset, this);
   this->dataPtr->node.Subscribe("/prius/stop",
       &PriusHybridPlugin::OnStop, this);
 
-  this->dataPtr->node.Subscribe("/cmd_vel", &PriusHybridPlugin::OnCmdVel, this);
+  //this->dataPtr->node.Subscribe("/cmd_vel", &PriusHybridPlugin::OnCmdVel, this);
   this->dataPtr->node.Subscribe("/cmd_gear",
       &PriusHybridPlugin::OnCmdGear, this);
   this->dataPtr->node.Subscribe("/cmd_mode",
@@ -675,14 +680,14 @@ void PriusHybridPlugin::Load(physics::ModelPtr _model, sdf::ElementPtr _sdf)
 /////////////////////////////////////////////////
 void PriusHybridPlugin::OnCmdVel(const ignition::msgs::Pose &_msg)
 {
-  std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+  // std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
 
-  this->dataPtr->gasPedalPercent = std::min(_msg.position().x(), 1.0);
-  this->dataPtr->handWheelCmd = _msg.position().y();
-  this->dataPtr->brakePedalPercent = _msg.position().z();
+  // this->dataPtr->gasPedalPercent = std::min(_msg.position().x(), 1.0);
+  // this->dataPtr->handWheelCmd = _msg.position().y();
+  // this->dataPtr->brakePedalPercent = _msg.position().z();
 
-  this->dataPtr->lastPedalCmdTime = this->dataPtr->world->SimTime();
-  this->dataPtr->lastSteeringCmdTime = this->dataPtr->world->SimTime();
+  // this->dataPtr->lastPedalCmdTime = this->dataPtr->world->SimTime();
+  // this->dataPtr->lastSteeringCmdTime = this->dataPtr->world->SimTime();
 }
 /////////////////////////////////////////////////
 void PriusHybridPlugin::OnCmdGear(const ignition::msgs::Int32 &_msg)
@@ -974,10 +979,59 @@ void PriusHybridPlugin::Reset()
 /////////////////////////////////////////////////
 void PriusHybridPlugin::Update()
 {
+
+
+
   // shortcut to this->dataPtr
   PriusHybridPluginPrivate *dPtr = this->dataPtr.get();
 
+
+
   std::lock_guard<std::mutex> lock(this->dataPtr->mutex);
+
+
+  //publish current twist.
+  geometry_msgs::Twist twist;
+
+  double x = dPtr->chassisLink->WorldLinearVel().X();
+  
+  double y =dPtr->chassisLink->WorldLinearVel().Y();
+  double z = dPtr->chassisLink->WorldAngularVel().Z();
+
+  double poseangle = dPtr->chassisLink->WorldPose().Rot().Euler().Z();
+  double vel = cos(poseangle)*(-1)*y + cos(poseangle-acos(0))*x;
+  // double velangle;
+  // if(x != 0){
+  // if(y>0){
+  //   velangle = (2*acos(0) - atan(abs(x)/y))*x/abs(x);
+  // }
+  // else if(y<0){
+  //   velangle = atan(abs(x)/abs(y)) * x/abs(x);
+  // }
+  // else{
+  //   velangle = acos(0)*x/abs(x);
+    
+  // }
+  // }
+  // else {
+  //   velangle = 0;
+  //   if(y>0)
+  //   velangle = 2*acos(0);
+    
+    
+    
+
+  // }
+
+  
+  // double anglediff = velangle - poseangle;
+  // double ratio = cos(anglediff);
+  
+  // printf("\nx:%f y:%f yaw:%f",x,y,poseangle);
+  
+  twist.linear.x = vel;
+  twist.angular.z = z;
+  this->dataPtr->twistpub.publish(twist);
 
   common::Time curTime = this->dataPtr->world->SimTime();
   double dt = (curTime - this->dataPtr->lastSimTime).Double();

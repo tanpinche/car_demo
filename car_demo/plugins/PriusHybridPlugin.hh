@@ -27,6 +27,7 @@
 #include <gazebo/common/Plugin.hh>
 
 #include <prius_msgs/Control.h>
+#include <geometry_msgs/Twist.h>
 
 namespace gazebo
 {
